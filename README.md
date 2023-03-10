@@ -70,7 +70,7 @@ The existing files in the `logs` directory were generated on a Dell Inspiron lap
   - Verification time was less than 200 milliseconds.
   - Proof size was about 10,000 bytes.
   - Public parameter generation time was about 2 seconds
-- The proving time was 64KB input was less than 3 minutes. Proving times for other lengths are shown below.
+- The proving time for 64KB input was less than 3 minutes. Proving times for other lengths are shown below.
 
 ### Proving times
 ```bash
