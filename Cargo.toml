@@ -6,10 +6,11 @@ edition = "2021"
 license-file = "LICENSE"
 
 [dependencies]
-bellperson = "0.24.1"
+bellperson = { version = "0.25.0", default-features = false }
+ff = "0.13.0"
 generic-array = "0.14.6"
-nova-snark = "0.18.0"
-pasta_curves = { version = "0.5.2", package = "fil_pasta_curves", features = ["repr-c", "serde"] }
+nova-snark = "0.22.0"
+pasta_curves = { version = "0.5", features = ["repr-c", "serde"] }
 sha2 = { version = "0.10.6", features = ["compress"] }
 
 [dev-dependencies]
