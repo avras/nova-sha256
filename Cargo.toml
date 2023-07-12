@@ -3,7 +3,7 @@ name = "nova-sha256"
 version = "0.1.0"
 authors = ["Saravanan Vijayakumaran <sarva@ee.iitb.ac.in>"]
 edition = "2021"
-license-file = "LICENSE"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 bellperson = { version = "0.25.0", default-features = false }
