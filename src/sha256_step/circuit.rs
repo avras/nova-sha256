@@ -116,14 +116,14 @@ where
             next_digest_bits.split_at(F::CAPACITY as usize);
         z_out.push(
             pack_bits(
-                cs.namespace(|| "Packing initial preimage bits into scalar"),
+                cs.namespace(|| "Packing initial next digest bits into scalar"),
                 initial_next_digest_bits,
             )
             .unwrap(),
         );
         z_out.push(
             pack_bits(
-                cs.namespace(|| "Packing remaining preimage bits into scalar"),
+                cs.namespace(|| "Packing remaining next digest bits into scalar"),
                 remaining_next_digest_bits,
             )
             .unwrap(),
