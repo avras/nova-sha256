@@ -19,15 +19,24 @@ pub fn sha256_state_to_bytes(state: [u32; 8]) -> Vec<u8> {
 
 fn padded_input_to_blocks(input: Vec<u8>) -> Vec<GenericArray<u8, U64>> {
     assert!(input.len() % BLOCK_LENGTH_BYTES == 0);
+    let mut input_clone = input.clone();
+    let mut blocks: Vec<Vec<u8>> = vec![];
 
-    let (blocks, remainder) = input.as_chunks::<BLOCK_LENGTH_BYTES>();
-    assert_eq!(remainder, []);
+    let num_blocks = input.len() / BLOCK_LENGTH_BYTES;
 
-    let blocks_vec: Vec<GenericArray<u8, U64>> = blocks
+    for i in (0..num_blocks).rev() {
+        let block: Vec<u8> = input_clone.drain(i * BLOCK_LENGTH_BYTES..).collect();
+        blocks.push(block);
+    }
+
+    // Reverse the order of the blocks as they were pushed in reverse order
+    blocks.reverse();
+
+    let blocks_ga_vec: Vec<GenericArray<u8, U64>> = blocks
         .iter()
         .map(|a| GenericArray::<u8, U64>::clone_from_slice(a))
         .collect();
-    blocks_vec
+    blocks_ga_vec
 }
 
 fn add_sha256_padding(input: Vec<u8>) -> Vec<u8> {
