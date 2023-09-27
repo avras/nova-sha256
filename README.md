@@ -17,27 +17,27 @@ In the above case, The input message to SHA256 will be $2^6$ zero bytes. The out
 Nova-based SHA256 compression function iterations
 =========================================================
 Producing public parameters...
-PublicParams::setup, took 2.611468601s 
+PublicParams::setup, took 3.607127198s 
 Number of constraints per step (primary circuit): 37034
 Number of constraints per step (secondary circuit): 10347
 Number of variables per step (primary circuit): 37000
 Number of variables per step (secondary circuit): 10329
 Generating a RecursiveSNARK...
-RecursiveSNARK::prove_step 0: true, took 82.511139ms 
-RecursiveSNARK::prove_step 1: true, took 130.959699ms 
-Total time taken by RecursiveSNARK::prove_steps: 213.520633ms
+RecursiveSNARK::prove_step 0: true, took 1.047µs 
+RecursiveSNARK::prove_step 1: true, took 81.249423ms 
+Total time taken by RecursiveSNARK::prove_steps: 81.283345ms
 Verifying a RecursiveSNARK...
-RecursiveSNARK::verify: true, took 105.580201ms
+RecursiveSNARK::verify: true, took 71.64086ms
 Generating a CompressedSNARK using Spartan with IPA-PC...
-CompressedSNARK::prove: true, took 5.661125515s
-Total prover time is 8.051336343s
-CompressedSNARK::len 10038 bytes
+CompressedSNARK::prove: true, took 3.971226131s
+Total proving time is 4.54092927s
+CompressedSNARK::len 9938 bytes
 Verifying a CompressedSNARK...
-CompressedSNARK::verify: true, took 185.780213ms
+CompressedSNARK::verify: true, took 141.363763ms
 =========================================================
-Public parameters generation time: 2.611468601s 
-Total prover time (excl pp generation): 8.051336343s
-Total verification time: 185.780213ms
+Public parameters generation time: 3.607127198s 
+Total proving time (excl pp generation): 4.54092927s
+Total verification time: 141.363763ms
 =========================================================
 Expected value of final hash = "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"
 Actual value of final hash   = "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"
@@ -66,89 +66,89 @@ To generate the logs for a particular length, you can run the `genlog.sh` script
 ## Existing benchmarks
 The existing files in the `logs` directory were generated on a Dell Inspiron laptop with a [11th Gen Intel i5-11320H CPU](https://ark.intel.com/content/www/us/en/ark/products/217183/intel-core-i511320h-processor-8m-cache-up-to-4-50-ghz-with-ipu.html) and 16 GB of RAM. The CPU has 4 cores with 2 threads per core.
 - For all lengths
-  - The peak memory usage was about 190 MB.
-  - Verification time was less than 200 milliseconds.
+  - The peak memory usage was about 260 MB.
+  - Verification time was less than 150 milliseconds.
   - Proof size was about 10,000 bytes.
-  - Public parameter generation time was about 2 seconds
-- The proving time for 64KB input was less than 3 minutes. Proving times for other lengths are shown below.
+  - Public parameter generation time was about 4 seconds
+- The proving time for 64KB input was around 2 minutes. Proving times for other lengths are shown below.
 
 ### Proving times
 ```bash
 $ grep "Total proving time is" $(ls logs/output_* -rt)
-logs/output_65536.txt:Total proving time is 153.329723483s
-logs/output_32768.txt:Total proving time is 83.317435157s
-logs/output_16384.txt:Total proving time is 44.416323182s
-logs/output_8192.txt:Total proving time is 25.07357382s
-logs/output_4096.txt:Total proving time is 15.447993575s
-logs/output_2048.txt:Total proving time is 10.738355661s
-logs/output_1024.txt:Total proving time is 8.52078857s
-logs/output_512.txt:Total proving time is 7.632562739s
-logs/output_256.txt:Total proving time is 6.942968695s
-logs/output_128.txt:Total proving time is 6.637955792s
-logs/output_64.txt:Total proving time is 6.515439507s
+logs/output_65536.txt:Total proving time is 128.361272568s
+logs/output_32768.txt:Total proving time is 67.385187591s
+logs/output_16384.txt:Total proving time is 35.242403037s
+logs/output_8192.txt:Total proving time is 19.427134991s
+logs/output_4096.txt:Total proving time is 11.853209643s
+logs/output_2048.txt:Total proving time is 8.10600355s
+logs/output_1024.txt:Total proving time is 6.274435826s
+logs/output_512.txt:Total proving time is 5.395036577s
+logs/output_256.txt:Total proving time is 4.970008973s
+logs/output_128.txt:Total proving time is 4.551801823s
+logs/output_64.txt:Total proving time is 4.475632468s
 ```
 
 ### Verification times
 ```bash
 $ grep "CompressedSNARK::verify" $(ls logs/output_* -rt)
-logs/output_65536.txt:CompressedSNARK::verify: true, took 166.459033ms
-logs/output_32768.txt:CompressedSNARK::verify: true, took 172.649659ms
-logs/output_16384.txt:CompressedSNARK::verify: true, took 162.629372ms
-logs/output_8192.txt:CompressedSNARK::verify: true, took 164.985758ms
-logs/output_4096.txt:CompressedSNARK::verify: true, took 153.084282ms
-logs/output_2048.txt:CompressedSNARK::verify: true, took 149.644821ms
-logs/output_1024.txt:CompressedSNARK::verify: true, took 136.47942ms
-logs/output_512.txt:CompressedSNARK::verify: true, took 147.028666ms
-logs/output_256.txt:CompressedSNARK::verify: true, took 142.876465ms
-logs/output_128.txt:CompressedSNARK::verify: true, took 144.707355ms
-logs/output_64.txt:CompressedSNARK::verify: true, took 139.618166ms
+logs/output_65536.txt:CompressedSNARK::verify: true, took 161.669379ms
+logs/output_32768.txt:CompressedSNARK::verify: true, took 154.329705ms
+logs/output_16384.txt:CompressedSNARK::verify: true, took 154.323314ms
+logs/output_8192.txt:CompressedSNARK::verify: true, took 150.839038ms
+logs/output_4096.txt:CompressedSNARK::verify: true, took 140.438199ms
+logs/output_2048.txt:CompressedSNARK::verify: true, took 135.292959ms
+logs/output_1024.txt:CompressedSNARK::verify: true, took 132.714996ms
+logs/output_512.txt:CompressedSNARK::verify: true, took 139.134246ms
+logs/output_256.txt:CompressedSNARK::verify: true, took 135.419974ms
+logs/output_128.txt:CompressedSNARK::verify: true, took 133.126469ms
+logs/output_64.txt:CompressedSNARK::verify: true, took 123.653851ms
 ```
 
 ### Proof sizes
 ```bash
 $ grep "len" $(ls logs/output_* -rt)
-logs/output_65536.txt:CompressedSNARK::len 10077 bytes
-logs/output_32768.txt:CompressedSNARK::len 10075 bytes
-logs/output_16384.txt:CompressedSNARK::len 10076 bytes
-logs/output_8192.txt:CompressedSNARK::len 10074 bytes
-logs/output_4096.txt:CompressedSNARK::len 10070 bytes
-logs/output_2048.txt:CompressedSNARK::len 10075 bytes
-logs/output_1024.txt:CompressedSNARK::len 10070 bytes
-logs/output_512.txt:CompressedSNARK::len 10072 bytes
-logs/output_256.txt:CompressedSNARK::len 10069 bytes
-logs/output_128.txt:CompressedSNARK::len 10074 bytes
-logs/output_64.txt:CompressedSNARK::len 10038 bytes
+logs/output_65536.txt:CompressedSNARK::len 9976 bytes
+logs/output_32768.txt:CompressedSNARK::len 9975 bytes
+logs/output_16384.txt:CompressedSNARK::len 9977 bytes
+logs/output_8192.txt:CompressedSNARK::len 9971 bytes
+logs/output_4096.txt:CompressedSNARK::len 9974 bytes
+logs/output_2048.txt:CompressedSNARK::len 9972 bytes
+logs/output_1024.txt:CompressedSNARK::len 9971 bytes
+logs/output_512.txt:CompressedSNARK::len 9975 bytes
+logs/output_256.txt:CompressedSNARK::len 9973 bytes
+logs/output_128.txt:CompressedSNARK::len 9974 bytes
+logs/output_64.txt:CompressedSNARK::len 9938 bytes
 ```
 
 ### Peak memory usage
 ```bash
 $ grep "Maximum resident set size" $(ls logs/time_output_* -rt)
-logs/time_output_65536.txt:     Maximum resident set size (kbytes): 189124
-logs/time_output_32768.txt:     Maximum resident set size (kbytes): 185732
-logs/time_output_16384.txt:     Maximum resident set size (kbytes): 188660
-logs/time_output_8192.txt:      Maximum resident set size (kbytes): 189748
-logs/time_output_4096.txt:      Maximum resident set size (kbytes): 185940
-logs/time_output_2048.txt:      Maximum resident set size (kbytes): 189444
-logs/time_output_1024.txt:      Maximum resident set size (kbytes): 191332
-logs/time_output_512.txt:       Maximum resident set size (kbytes): 185540
-logs/time_output_256.txt:       Maximum resident set size (kbytes): 189904
-logs/time_output_128.txt:       Maximum resident set size (kbytes): 187456
-logs/time_output_64.txt:        Maximum resident set size (kbytes): 186700
+logs/time_output_65536.txt:     Maximum resident set size (kbytes): 261356
+logs/time_output_32768.txt:     Maximum resident set size (kbytes): 265844
+logs/time_output_16384.txt:     Maximum resident set size (kbytes): 260856
+logs/time_output_8192.txt:      Maximum resident set size (kbytes): 266920
+logs/time_output_4096.txt:      Maximum resident set size (kbytes): 262376
+logs/time_output_2048.txt:      Maximum resident set size (kbytes): 264108
+logs/time_output_1024.txt:      Maximum resident set size (kbytes): 261804
+logs/time_output_512.txt:       Maximum resident set size (kbytes): 263784
+logs/time_output_256.txt:       Maximum resident set size (kbytes): 262496
+logs/time_output_128.txt:       Maximum resident set size (kbytes): 263340
+logs/time_output_64.txt:        Maximum resident set size (kbytes): 262608
 ```
 ### Public parameter generation time
 ```bash
 $ grep "Public parameters" $(ls logs/output_* -rt)
-logs/output_65536.txt:Public parameters generation time: 2.108299971s 
-logs/output_32768.txt:Public parameters generation time: 2.376485699s 
-logs/output_16384.txt:Public parameters generation time: 2.328711461s 
-logs/output_8192.txt:Public parameters generation time: 2.383944439s 
-logs/output_4096.txt:Public parameters generation time: 2.272826069s 
-logs/output_2048.txt:Public parameters generation time: 2.307919212s 
-logs/output_1024.txt:Public parameters generation time: 2.235006997s 
-logs/output_512.txt:Public parameters generation time: 2.276651869s 
-logs/output_256.txt:Public parameters generation time: 2.224695874s 
-logs/output_128.txt:Public parameters generation time: 2.231766552s 
-logs/output_64.txt:Public parameters generation time: 2.22830318s 
+logs/output_65536.txt:Public parameters generation time: 3.612032586s 
+logs/output_32768.txt:Public parameters generation time: 3.87279403s 
+logs/output_16384.txt:Public parameters generation time: 3.920718336s 
+logs/output_8192.txt:Public parameters generation time: 3.846917525s 
+logs/output_4096.txt:Public parameters generation time: 3.795370968s 
+logs/output_2048.txt:Public parameters generation time: 3.72987859s 
+logs/output_1024.txt:Public parameters generation time: 3.679694828s 
+logs/output_512.txt:Public parameters generation time: 3.720623095s 
+logs/output_256.txt:Public parameters generation time: 3.717689922s 
+logs/output_128.txt:Public parameters generation time: 3.662263553s 
+logs/output_64.txt:Public parameters generation time: 3.597867008s
 ```
 
 
