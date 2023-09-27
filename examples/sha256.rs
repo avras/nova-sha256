@@ -9,7 +9,7 @@ use nova_sha256::sha256_step::util::{
     scalars_to_digest, sha256_initial_digest_scalars, DIGEST_LENGTH_BYTES,
 };
 use nova_snark::{
-    traits::{circuit::TrivialTestCircuit, Group},
+    traits::{circuit::TrivialCircuit, Group},
     CompressedSNARK, PublicParams, RecursiveSNARK,
 };
 use sha2::{Digest, Sha256};
@@ -33,14 +33,14 @@ fn main() {
     println!("Nova-based SHA256 compression function iterations");
     println!("=========================================================");
 
-    type C1 = SHA256CompressionCircuit<<G1 as Group>::Scalar>;
-    type C2 = TrivialTestCircuit<<G2 as Group>::Scalar>;
+    type C1 = SHA256CompressionCircuit;
+    type C2 = TrivialCircuit<<G2 as Group>::Scalar>;
     let circuit_primary: C1 = SHA256CompressionCircuit::default();
-    let circuit_secondary: C2 = TrivialTestCircuit::default();
+    let circuit_secondary: C2 = TrivialCircuit::default();
 
     let param_gen_timer = Instant::now();
     println!("Producing public parameters...");
-    let pp = PublicParams::<G1, G2, C1, C2>::setup(circuit_primary, circuit_secondary.clone());
+    let pp = PublicParams::<G1, G2, C1, C2>::setup(&circuit_primary, &circuit_secondary);
 
     let param_gen_time = param_gen_timer.elapsed();
     println!("PublicParams::setup, took {:?} ", param_gen_time);
@@ -121,8 +121,8 @@ fn main() {
     let start = Instant::now();
     type EE1 = nova_snark::provider::ipa_pc::EvaluationEngine<G1>;
     type EE2 = nova_snark::provider::ipa_pc::EvaluationEngine<G2>;
-    type S1 = nova_snark::spartan::RelaxedR1CSSNARK<G1, EE1>;
-    type S2 = nova_snark::spartan::RelaxedR1CSSNARK<G2, EE2>;
+    type S1 = nova_snark::spartan::snark::RelaxedR1CSSNARK<G1, EE1>;
+    type S2 = nova_snark::spartan::snark::RelaxedR1CSSNARK<G2, EE2>;
 
     let res = CompressedSNARK::<_, _, _, _, S1, S2>::prove(&pp, &pk, &recursive_snark);
     println!(

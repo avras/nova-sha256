@@ -1,48 +1,39 @@
-use super::util::{
-    digest_to_scalars, sha256_state_sequence, BLOCK_LENGTH_BYTES, DIGEST_LENGTH_BYTES,
+use super::util::{sha256_msg_block_sequence, BLOCK_LENGTH_BYTES, DIGEST_LENGTH_BYTES};
+use bellpepper::gadgets::{
+    multipack::{bytes_to_bits, pack_bits},
+    sha256::sha256_compression_function,
+    uint32::UInt32,
 };
-use bellperson::{
-    gadgets::{
-        boolean::AllocatedBit, multipack::pack_bits, num::AllocatedNum,
-        sha256::sha256_compression_function, uint32::UInt32,
-    },
-    gadgets::{boolean::Boolean, multipack::bytes_to_bits},
+use bellpepper_core::{
+    boolean::{AllocatedBit, Boolean},
+    num::AllocatedNum,
     ConstraintSystem, SynthesisError,
 };
 use ff::{PrimeField, PrimeFieldBits};
 use nova_snark::traits::circuit::StepCircuit;
 
 #[derive(Clone, Debug)]
-pub struct SHA256CompressionCircuit<F: PrimeField> {
+pub struct SHA256CompressionCircuit {
     input: [u8; BLOCK_LENGTH_BYTES],
-    current_digest: [F; 2],
-    next_digest: [F; 2],
 }
 
-impl<F> Default for SHA256CompressionCircuit<F>
-where
-    F: PrimeField + PrimeFieldBits,
-{
+impl Default for SHA256CompressionCircuit {
     fn default() -> Self {
         Self {
             input: [0u8; BLOCK_LENGTH_BYTES],
-            current_digest: [F::ZERO; 2],
-            next_digest: [F::ZERO; 2],
         }
     }
 }
 
-impl<F: PrimeField + PrimeFieldBits> SHA256CompressionCircuit<F> {
+impl SHA256CompressionCircuit {
     // Produces the intermediate SHA256 digests when a message is hashed
     pub fn new_state_sequence(input: Vec<u8>) -> Vec<Self> {
-        let (block_seq, digest_seq) = sha256_state_sequence(input);
-        let mut iteration_vec: Vec<SHA256CompressionCircuit<F>> = vec![];
+        let block_seq = sha256_msg_block_sequence(input);
+        let mut iteration_vec: Vec<SHA256CompressionCircuit> = vec![];
 
         for i in 0..block_seq.len() {
             iteration_vec.push(SHA256CompressionCircuit {
                 input: block_seq[i],
-                current_digest: digest_to_scalars(&digest_seq[i]),
-                next_digest: digest_to_scalars(&digest_seq[i + 1]),
             });
         }
 
@@ -50,7 +41,7 @@ impl<F: PrimeField + PrimeFieldBits> SHA256CompressionCircuit<F> {
     }
 }
 
-impl<F> StepCircuit<F> for SHA256CompressionCircuit<F>
+impl<F> StepCircuit<F> for SHA256CompressionCircuit
 where
     F: PrimeField + PrimeFieldBits,
 {
@@ -131,21 +122,14 @@ where
 
         Ok(z_out)
     }
-
-    fn output(&self, z: &[F]) -> Vec<F> {
-        assert_eq!(z.len(), 2);
-        assert_eq!(z[0], self.current_digest[0]);
-        assert_eq!(z[1], self.current_digest[1]);
-
-        // Compute output using non-deteriministic advice
-        self.next_digest.to_vec()
-    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::sha256_step::util::{digest_to_scalars, sha256_initial_digest_scalars};
+
     use super::*;
-    use bellperson::gadgets::test::TestConstraintSystem;
+    use bellpepper_core::test_cs::TestConstraintSystem;
     use pasta_curves::Fp;
 
     #[test]
@@ -158,7 +142,7 @@ mod tests {
         let sha256_iteration = sha256_state_sequence.pop().unwrap();
         let mut z_in: Vec<AllocatedNum<Fp>> = vec![];
 
-        for (i, s) in sha256_iteration.current_digest.iter().enumerate() {
+        for (i, s) in sha256_initial_digest_scalars().iter().enumerate() {
             z_in.push(
                 AllocatedNum::alloc(cs.namespace(|| format!("z_in[{i}]")), || Ok(*s)).unwrap(),
             );
@@ -166,10 +150,23 @@ mod tests {
         let z_out = sha256_iteration.synthesize(&mut cs, &z_in).unwrap();
         assert!(cs.is_satisfied());
 
-        assert_eq!(z_out.len(), sha256_iteration.next_digest.len());
-        for (i, s) in sha256_iteration.next_digest.iter().enumerate() {
-            assert_eq!(z_out[i].get_value().unwrap(), *s);
-        }
+        assert_eq!(z_out.len(), 2);
+        let z_out_values = [
+            z_out[0].get_value().unwrap_or_default(),
+            z_out[1].get_value().unwrap_or_default(),
+        ];
+
+        let expected_digest: [u8; 32] =
+            hex::decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+                .expect("Failed to parse digest string")
+                .try_into()
+                .unwrap();
+
+        let expected_zout: [Fp; 2] = digest_to_scalars(&expected_digest);
+
+        assert_eq!(expected_zout[0], z_out_values[0]);
+        assert_eq!(expected_zout[1], z_out_values[1]);
+
         println!("Num constraints = {:?}", cs.num_constraints());
         println!("Num inputs = {:?}", cs.num_inputs());
     }

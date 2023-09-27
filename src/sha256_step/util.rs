@@ -1,7 +1,6 @@
-use bellperson::gadgets::multipack::{bytes_to_bits, compute_multipacking};
+use bellpepper::gadgets::multipack::{bytes_to_bits, compute_multipacking};
 use ff::{PrimeField, PrimeFieldBits};
 use generic_array::{typenum::U64, GenericArray};
-use sha2::compress256;
 
 pub const IV: [u32; 8] = [
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
@@ -56,30 +55,13 @@ fn add_sha256_padding(input: Vec<u8>) -> Vec<u8> {
     padded_input
 }
 
-pub fn sha256_state_sequence(
-    input: Vec<u8>,
-) -> (
-    Vec<[u8; BLOCK_LENGTH_BYTES]>,
-    Vec<[u8; DIGEST_LENGTH_BYTES]>,
-) {
+pub fn sha256_msg_block_sequence(input: Vec<u8>) -> Vec<[u8; BLOCK_LENGTH_BYTES]> {
     let padded_input = add_sha256_padding(input);
-
-    let mut state = IV;
-    let mut digest_sequence: Vec<[u8; DIGEST_LENGTH_BYTES]> = vec![];
-    let mut block_sequence: Vec<[u8; BLOCK_LENGTH_BYTES]> = vec![];
-    let state_bytes = sha256_state_to_bytes(state);
-    assert_eq!(state_bytes.len(), DIGEST_LENGTH_BYTES);
-    digest_sequence.push(state_bytes.as_slice().try_into().unwrap());
-
     let blocks_vec: Vec<GenericArray<u8, U64>> = padded_input_to_blocks(padded_input);
-    for block in blocks_vec {
-        compress256(&mut state, &[block]);
-        let state_bytes = sha256_state_to_bytes(state);
-        assert_eq!(state_bytes.len(), DIGEST_LENGTH_BYTES);
-        digest_sequence.push(state_bytes.as_slice().try_into().unwrap());
-        block_sequence.push(block.try_into().unwrap());
-    }
-    (block_sequence, digest_sequence)
+    blocks_vec
+        .into_iter()
+        .map(|b| b.try_into().unwrap())
+        .collect()
 }
 
 pub fn digest_to_scalars<F>(digest: &[u8; DIGEST_LENGTH_BYTES]) -> [F; 2]
@@ -145,6 +127,7 @@ where
 mod test {
     use super::*;
     use pasta_curves::Fp;
+    use sha2::compress256;
 
     #[test]
     fn test_one_compression_iteration() {
@@ -174,24 +157,6 @@ mod test {
         let hash_bytes: Vec<u8> = sha256_state_to_bytes(state);
         let expected_hash = "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1";
         assert_eq!(expected_hash, hex::encode(hash_bytes));
-    }
-
-    #[test]
-    fn test_digest_sequence_generation() {
-        let input: Vec<u8> = b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".to_vec(); // 56 bytes
-        let (_, digest_sequence) = sha256_state_sequence(input);
-        assert_eq!(digest_sequence.len(), 3usize);
-
-        // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/SHA256.pdf
-        let expected_digest_sequence = [
-            "6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd19",
-            "85e655d6417a17953363376a624cde5c76e09589cac5f811cc4b32c1f20e533a",
-            "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
-        ];
-
-        for (i, hash_bytes) in digest_sequence.into_iter().enumerate() {
-            assert_eq!(expected_digest_sequence[i], hex::encode(hash_bytes));
-        }
     }
 
     #[test]
