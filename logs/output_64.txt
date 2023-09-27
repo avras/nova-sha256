@@ -1,27 +1,27 @@
 Nova-based SHA256 compression function iterations
 =========================================================
 Producing public parameters...
-PublicParams::setup, took 2.22830318s 
+PublicParams::setup, took 3.597867008s 
 Number of constraints per step (primary circuit): 37034
 Number of constraints per step (secondary circuit): 10347
 Number of variables per step (primary circuit): 37000
 Number of variables per step (secondary circuit): 10329
 Generating a RecursiveSNARK...
-RecursiveSNARK::prove_step 0: true, took 60.78501ms 
-RecursiveSNARK::prove_step 1: true, took 97.929119ms 
-Total time taken by RecursiveSNARK::prove_steps: 158.80238ms
+RecursiveSNARK::prove_step 0: true, took 690ns 
+RecursiveSNARK::prove_step 1: true, took 67.147947ms 
+Total time taken by RecursiveSNARK::prove_steps: 67.199049ms
 Verifying a RecursiveSNARK...
-RecursiveSNARK::verify: true, took 80.619804ms
+RecursiveSNARK::verify: true, took 61.991632ms
 Generating a CompressedSNARK using Spartan with IPA-PC...
-CompressedSNARK::prove: true, took 4.390348582s
-Total proving time is 6.515439507s
-CompressedSNARK::len 10038 bytes
+CompressedSNARK::prove: true, took 3.944919199s
+Total proving time is 4.475632468s
+CompressedSNARK::len 9938 bytes
 Verifying a CompressedSNARK...
-CompressedSNARK::verify: true, took 139.618166ms
+CompressedSNARK::verify: true, took 123.653851ms
 =========================================================
-Public parameters generation time: 2.22830318s 
-Total proving time (excl pp generation): 6.515439507s
-Total verification time: 139.618166ms
+Public parameters generation time: 3.597867008s 
+Total proving time (excl pp generation): 4.475632468s
+Total verification time: 123.653851ms
 =========================================================
 Expected value of final hash = "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"
 Actual value of final hash   = "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"

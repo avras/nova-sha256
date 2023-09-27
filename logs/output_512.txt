@@ -1,34 +1,34 @@
 Nova-based SHA256 compression function iterations
 =========================================================
 Producing public parameters...
-PublicParams::setup, took 2.276651869s 
+PublicParams::setup, took 3.720623095s 
 Number of constraints per step (primary circuit): 37034
 Number of constraints per step (secondary circuit): 10347
 Number of variables per step (primary circuit): 37000
 Number of variables per step (secondary circuit): 10329
 Generating a RecursiveSNARK...
-RecursiveSNARK::prove_step 0: true, took 58.245493ms 
-RecursiveSNARK::prove_step 1: true, took 92.297234ms 
-RecursiveSNARK::prove_step 2: true, took 114.008037ms 
-RecursiveSNARK::prove_step 3: true, took 122.073293ms 
-RecursiveSNARK::prove_step 4: true, took 120.555997ms 
-RecursiveSNARK::prove_step 5: true, took 122.543515ms 
-RecursiveSNARK::prove_step 6: true, took 123.552639ms 
-RecursiveSNARK::prove_step 7: true, took 129.593756ms 
-RecursiveSNARK::prove_step 8: true, took 133.129464ms 
-Total time taken by RecursiveSNARK::prove_steps: 1.016203095s
+RecursiveSNARK::prove_step 0: true, took 1.255µs 
+RecursiveSNARK::prove_step 1: true, took 69.703278ms 
+RecursiveSNARK::prove_step 2: true, took 90.560268ms 
+RecursiveSNARK::prove_step 3: true, took 92.973237ms 
+RecursiveSNARK::prove_step 4: true, took 98.41334ms 
+RecursiveSNARK::prove_step 5: true, took 104.585127ms 
+RecursiveSNARK::prove_step 6: true, took 97.707823ms 
+RecursiveSNARK::prove_step 7: true, took 105.053122ms 
+RecursiveSNARK::prove_step 8: true, took 113.643455ms 
+Total time taken by RecursiveSNARK::prove_steps: 772.904522ms
 Verifying a RecursiveSNARK...
-RecursiveSNARK::verify: true, took 130.397137ms
+RecursiveSNARK::verify: true, took 110.176336ms
 Generating a CompressedSNARK using Spartan with IPA-PC...
-CompressedSNARK::prove: true, took 4.517038849s
-Total proving time is 7.632562739s
-CompressedSNARK::len 10072 bytes
+CompressedSNARK::prove: true, took 4.108741477s
+Total proving time is 5.395036577s
+CompressedSNARK::len 9975 bytes
 Verifying a CompressedSNARK...
-CompressedSNARK::verify: true, took 147.028666ms
+CompressedSNARK::verify: true, took 139.134246ms
 =========================================================
-Public parameters generation time: 2.276651869s 
-Total proving time (excl pp generation): 7.632562739s
-Total verification time: 147.028666ms
+Public parameters generation time: 3.720623095s 
+Total proving time (excl pp generation): 5.395036577s
+Total verification time: 139.134246ms
 =========================================================
 Expected value of final hash = "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560"
 Actual value of final hash   = "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560"

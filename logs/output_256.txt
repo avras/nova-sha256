@@ -1,30 +1,30 @@
 Nova-based SHA256 compression function iterations
 =========================================================
 Producing public parameters...
-PublicParams::setup, took 2.224695874s 
+PublicParams::setup, took 3.717689922s 
 Number of constraints per step (primary circuit): 37034
 Number of constraints per step (secondary circuit): 10347
 Number of variables per step (primary circuit): 37000
 Number of variables per step (secondary circuit): 10329
 Generating a RecursiveSNARK...
-RecursiveSNARK::prove_step 0: true, took 58.886843ms 
-RecursiveSNARK::prove_step 1: true, took 95.476162ms 
-RecursiveSNARK::prove_step 2: true, took 112.534154ms 
-RecursiveSNARK::prove_step 3: true, took 117.342305ms 
-RecursiveSNARK::prove_step 4: true, took 127.544552ms 
-Total time taken by RecursiveSNARK::prove_steps: 511.905501ms
+RecursiveSNARK::prove_step 0: true, took 669ns 
+RecursiveSNARK::prove_step 1: true, took 68.544743ms 
+RecursiveSNARK::prove_step 2: true, took 89.967184ms 
+RecursiveSNARK::prove_step 3: true, took 95.53945ms 
+RecursiveSNARK::prove_step 4: true, took 99.306304ms 
+Total time taken by RecursiveSNARK::prove_steps: 353.465618ms
 Verifying a RecursiveSNARK...
-RecursiveSNARK::verify: true, took 122.238355ms
+RecursiveSNARK::verify: true, took 101.456747ms
 Generating a CompressedSNARK using Spartan with IPA-PC...
-CompressedSNARK::prove: true, took 4.425590555s
-Total proving time is 6.942968695s
-CompressedSNARK::len 10069 bytes
+CompressedSNARK::prove: true, took 4.110159051s
+Total proving time is 4.970008973s
+CompressedSNARK::len 9973 bytes
 Verifying a CompressedSNARK...
-CompressedSNARK::verify: true, took 142.876465ms
+CompressedSNARK::verify: true, took 135.419974ms
 =========================================================
-Public parameters generation time: 2.224695874s 
-Total proving time (excl pp generation): 6.942968695s
-Total verification time: 142.876465ms
+Public parameters generation time: 3.717689922s 
+Total proving time (excl pp generation): 4.970008973s
+Total verification time: 135.419974ms
 =========================================================
 Expected value of final hash = "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1"
 Actual value of final hash   = "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1"

@@ -1,18 +1,18 @@
 	Command being timed: "./target/release/examples/sha256 16"
-	User time (seconds): 649.52
-	System time (seconds): 4.06
-	Percent of CPU this job got: 419%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:35.62
+	User time (seconds): 656.36
+	System time (seconds): 3.40
+	Percent of CPU this job got: 499%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:12.15
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 189124
+	Maximum resident set size (kbytes): 261356
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 60308
-	Voluntary context switches: 330694
-	Involuntary context switches: 41416
+	Major (requiring I/O) page faults: 3
+	Minor (reclaiming a frame) page faults: 102894
+	Voluntary context switches: 307558
+	Involuntary context switches: 57534
 	Swaps: 0
 	File system inputs: 0
 	File system outputs: 152

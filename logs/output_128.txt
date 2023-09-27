@@ -1,28 +1,28 @@
 Nova-based SHA256 compression function iterations
 =========================================================
 Producing public parameters...
-PublicParams::setup, took 2.231766552s 
+PublicParams::setup, took 3.662263553s 
 Number of constraints per step (primary circuit): 37034
 Number of constraints per step (secondary circuit): 10347
 Number of variables per step (primary circuit): 37000
 Number of variables per step (secondary circuit): 10329
 Generating a RecursiveSNARK...
-RecursiveSNARK::prove_step 0: true, took 58.370876ms 
-RecursiveSNARK::prove_step 1: true, took 92.058321ms 
-RecursiveSNARK::prove_step 2: true, took 119.469856ms 
-Total time taken by RecursiveSNARK::prove_steps: 269.977538ms
+RecursiveSNARK::prove_step 0: true, took 711ns 
+RecursiveSNARK::prove_step 1: true, took 67.837178ms 
+RecursiveSNARK::prove_step 2: true, took 86.773153ms 
+Total time taken by RecursiveSNARK::prove_steps: 154.679518ms
 Verifying a RecursiveSNARK...
-RecursiveSNARK::verify: true, took 107.902295ms
+RecursiveSNARK::verify: true, took 89.161107ms
 Generating a CompressedSNARK using Spartan with IPA-PC...
-CompressedSNARK::prove: true, took 4.373154814s
-Total proving time is 6.637955792s
-CompressedSNARK::len 10074 bytes
+CompressedSNARK::prove: true, took 3.906510378s
+Total proving time is 4.551801823s
+CompressedSNARK::len 9974 bytes
 Verifying a CompressedSNARK...
-CompressedSNARK::verify: true, took 144.707355ms
+CompressedSNARK::verify: true, took 133.126469ms
 =========================================================
-Public parameters generation time: 2.231766552s 
-Total proving time (excl pp generation): 6.637955792s
-Total verification time: 144.707355ms
+Public parameters generation time: 3.662263553s 
+Total proving time (excl pp generation): 4.551801823s
+Total verification time: 133.126469ms
 =========================================================
 Expected value of final hash = "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca"
 Actual value of final hash   = "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca"
