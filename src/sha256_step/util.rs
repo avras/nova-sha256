@@ -9,11 +9,7 @@ pub const BLOCK_LENGTH_BYTES: usize = 64;
 pub const DIGEST_LENGTH_BYTES: usize = 32;
 
 pub fn sha256_state_to_bytes(state: [u32; 8]) -> Vec<u8> {
-    state
-        .into_iter()
-        .map(|x| x.to_be_bytes())
-        .flatten()
-        .collect()
+    state.into_iter().flat_map(|x| x.to_be_bytes()).collect()
 }
 
 fn padded_input_to_blocks(input: Vec<u8>) -> Vec<GenericArray<u8, U64>> {

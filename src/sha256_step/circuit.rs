@@ -29,15 +29,10 @@ impl SHA256CompressionCircuit {
     // Produces the intermediate SHA256 digests when a message is hashed
     pub fn new_state_sequence(input: Vec<u8>) -> Vec<Self> {
         let block_seq = sha256_msg_block_sequence(input);
-        let mut iteration_vec: Vec<SHA256CompressionCircuit> = vec![];
-
-        for i in 0..block_seq.len() {
-            iteration_vec.push(SHA256CompressionCircuit {
-                input: block_seq[i],
-            });
-        }
-
-        iteration_vec
+        block_seq
+            .into_iter()
+            .map(|b| SHA256CompressionCircuit { input: b })
+            .collect()
     }
 }
 
@@ -62,14 +57,17 @@ where
             .to_bits_le(cs.namespace(|| "remaining current digest bits"))
             .unwrap();
 
-        let mut current_digest_bits = vec![];
-        for i in 0..F::CAPACITY as usize {
-            current_digest_bits.push(initial_curr_digest_bits[i].clone());
-        }
+        let mut current_digest_bits: Vec<Boolean> = initial_curr_digest_bits
+            .into_iter()
+            .take(F::CAPACITY as usize)
+            .collect();
         let num_bits_remaining = DIGEST_LENGTH_BYTES * 8 - (F::CAPACITY as usize);
-        for i in 0..num_bits_remaining {
-            current_digest_bits.push(remaining_curr_digest_bits[i].clone());
-        }
+        current_digest_bits.append(
+            &mut remaining_curr_digest_bits
+                .into_iter()
+                .take(num_bits_remaining)
+                .collect(),
+        );
 
         let mut current_state: Vec<UInt32> = vec![];
         for c in current_digest_bits.chunks(32) {
@@ -97,8 +95,7 @@ where
 
         let next_digest_bits: Vec<Boolean> = next_state
             .into_iter()
-            .map(|u| u.into_bits_be())
-            .flatten()
+            .flat_map(|u| u.into_bits_be())
             .collect();
         assert_eq!(next_digest_bits.len(), DIGEST_LENGTH_BYTES * 8);
 
