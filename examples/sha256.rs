@@ -33,7 +33,7 @@ fn main() {
     println!("Nova-based SHA256 compression function iterations");
     println!("=========================================================");
 
-    type C1 = SHA256CompressionCircuit;
+    type C1 = SHA256CompressionCircuit<<G1 as Group>::Scalar>;
     type C2 = TrivialCircuit<<G2 as Group>::Scalar>;
     let circuit_primary: C1 = SHA256CompressionCircuit::default();
     let circuit_secondary: C2 = TrivialCircuit::default();

@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use super::util::{sha256_msg_block_sequence, BLOCK_LENGTH_BYTES, DIGEST_LENGTH_BYTES};
 use bellpepper::gadgets::{
     multipack::{bytes_to_bits, pack_bits},
@@ -13,47 +15,53 @@ use ff::{PrimeField, PrimeFieldBits};
 use nova_snark::traits::circuit::StepCircuit;
 
 #[derive(Clone, Debug)]
-pub struct SHA256CompressionCircuit {
+pub struct SHA256CompressionCircuit<F>
+where
+    F: PrimeField,
+{
     input: [u8; BLOCK_LENGTH_BYTES],
+    marker: PhantomData<F>,
 }
 
-impl Default for SHA256CompressionCircuit {
+impl<F> Default for SHA256CompressionCircuit<F>
+where
+    F: PrimeField + PrimeFieldBits,
+{
     fn default() -> Self {
         Self {
             input: [0u8; BLOCK_LENGTH_BYTES],
+            marker: Default::default(),
         }
     }
 }
 
-impl SHA256CompressionCircuit {
+impl<F> SHA256CompressionCircuit<F>
+where
+    F: PrimeField + PrimeFieldBits,
+{
     // Produces the intermediate SHA256 digests when a message is hashed
     pub fn new_state_sequence(input: Vec<u8>) -> Vec<Self> {
         let block_seq = sha256_msg_block_sequence(input);
         block_seq
             .into_iter()
-            .map(|b| SHA256CompressionCircuit { input: b })
+            .map(|b| SHA256CompressionCircuit {
+                input: b,
+                marker: PhantomData,
+            })
             .collect()
     }
-}
 
-impl<F> StepCircuit<F> for SHA256CompressionCircuit
-where
-    F: PrimeField + PrimeFieldBits,
-{
-    fn arity(&self) -> usize {
-        2
-    }
-
-    fn synthesize<CS: ConstraintSystem<F>>(
-        &self,
+    pub fn compress<CS: ConstraintSystem<F>>(
         cs: &mut CS,
-        z: &[AllocatedNum<F>],
+        msg_block: [u8; BLOCK_LENGTH_BYTES],
+        current_digest: &[AllocatedNum<F>],
     ) -> Result<Vec<AllocatedNum<F>>, SynthesisError> {
-        assert_eq!(z.len(), 2);
-        let initial_curr_digest_bits = z[0]
+        assert!((F::CAPACITY * 2) as usize >= DIGEST_LENGTH_BYTES * 8);
+        assert_eq!(current_digest.len(), 2);
+        let initial_curr_digest_bits = current_digest[0]
             .to_bits_le(cs.namespace(|| "initial current digest bits"))
             .unwrap();
-        let remaining_curr_digest_bits = z[1]
+        let remaining_curr_digest_bits = current_digest[1]
             .to_bits_le(cs.namespace(|| "remaining current digest bits"))
             .unwrap();
 
@@ -75,7 +83,7 @@ where
         }
         assert_eq!(current_state.len(), 8);
 
-        let input_bit_values = bytes_to_bits(&self.input);
+        let input_bit_values = bytes_to_bits(&msg_block);
         assert_eq!(input_bit_values.len(), BLOCK_LENGTH_BYTES * 8);
         let input_bits: Vec<Boolean> = input_bit_values
             .iter()
@@ -118,6 +126,23 @@ where
         );
 
         Ok(z_out)
+    }
+}
+
+impl<F> StepCircuit<F> for SHA256CompressionCircuit<F>
+where
+    F: PrimeField + PrimeFieldBits,
+{
+    fn arity(&self) -> usize {
+        2
+    }
+
+    fn synthesize<CS: ConstraintSystem<F>>(
+        &self,
+        cs: &mut CS,
+        z: &[AllocatedNum<F>],
+    ) -> Result<Vec<AllocatedNum<F>>, SynthesisError> {
+        Self::compress(cs, self.input, z)
     }
 }
 
