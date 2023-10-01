@@ -1,10 +1,8 @@
 use std::marker::PhantomData;
 
-use super::util::{sha256_msg_block_sequence, BLOCK_LENGTH_BYTES, DIGEST_LENGTH_BYTES};
+use crate::sha256_step::util::{sha256_msg_block_sequence, BLOCK_LENGTH, DIGEST_LENGTH};
 use bellpepper::gadgets::{
-    multipack::{bytes_to_bits, pack_bits},
-    sha256::sha256_compression_function,
-    uint32::UInt32,
+    multipack::pack_bits, sha256::sha256_compression_function, uint32::UInt32,
 };
 use bellpepper_core::{
     boolean::{AllocatedBit, Boolean},
@@ -19,7 +17,7 @@ pub struct SHA256CompressionCircuit<F>
 where
     F: PrimeField,
 {
-    input: [u8; BLOCK_LENGTH_BYTES],
+    msg_block: [bool; BLOCK_LENGTH],
     marker: PhantomData<F>,
 }
 
@@ -29,7 +27,7 @@ where
 {
     fn default() -> Self {
         Self {
-            input: [0u8; BLOCK_LENGTH_BYTES],
+            msg_block: [false; BLOCK_LENGTH],
             marker: Default::default(),
         }
     }
@@ -45,7 +43,7 @@ where
         block_seq
             .into_iter()
             .map(|b| SHA256CompressionCircuit {
-                input: b,
+                msg_block: b,
                 marker: PhantomData,
             })
             .collect()
@@ -53,10 +51,12 @@ where
 
     pub fn compress<CS: ConstraintSystem<F>>(
         cs: &mut CS,
-        msg_block: [u8; BLOCK_LENGTH_BYTES],
+        msg_block: &[Boolean],
         current_digest: &[AllocatedNum<F>],
     ) -> Result<Vec<AllocatedNum<F>>, SynthesisError> {
-        assert!((F::CAPACITY * 2) as usize >= DIGEST_LENGTH_BYTES * 8);
+        assert!((F::CAPACITY * 2) as usize >= DIGEST_LENGTH);
+        assert_eq!(msg_block.len(), BLOCK_LENGTH);
+
         assert_eq!(current_digest.len(), 2);
         let initial_curr_digest_bits = current_digest[0]
             .to_bits_le(cs.namespace(|| "initial current digest bits"))
@@ -69,7 +69,7 @@ where
             .into_iter()
             .take(F::CAPACITY as usize)
             .collect();
-        let num_bits_remaining = DIGEST_LENGTH_BYTES * 8 - (F::CAPACITY as usize);
+        let num_bits_remaining = DIGEST_LENGTH - (F::CAPACITY as usize);
         current_digest_bits.append(
             &mut remaining_curr_digest_bits
                 .into_iter()
@@ -83,29 +83,16 @@ where
         }
         assert_eq!(current_state.len(), 8);
 
-        let input_bit_values = bytes_to_bits(&msg_block);
-        assert_eq!(input_bit_values.len(), BLOCK_LENGTH_BYTES * 8);
-        let input_bits: Vec<Boolean> = input_bit_values
-            .iter()
-            .enumerate()
-            .map(|(i, b)| {
-                Boolean::from(
-                    AllocatedBit::alloc(cs.namespace(|| format!("input bit {i}")), Some(*b))
-                        .unwrap(),
-                )
-            })
-            .collect();
-
         // SHA256 compression function application
         let next_state: Vec<UInt32> =
-            sha256_compression_function(&mut *cs, &input_bits, &current_state)?;
+            sha256_compression_function(&mut *cs, msg_block, &current_state)?;
         assert_eq!(next_state.len(), 8);
 
         let next_digest_bits: Vec<Boolean> = next_state
             .into_iter()
             .flat_map(|u| u.into_bits_be())
             .collect();
-        assert_eq!(next_digest_bits.len(), DIGEST_LENGTH_BYTES * 8);
+        assert_eq!(next_digest_bits.len(), DIGEST_LENGTH);
 
         let mut z_out: Vec<AllocatedNum<F>> = vec![];
         let (initial_next_digest_bits, remaining_next_digest_bits) =
@@ -142,7 +129,19 @@ where
         cs: &mut CS,
         z: &[AllocatedNum<F>],
     ) -> Result<Vec<AllocatedNum<F>>, SynthesisError> {
-        Self::compress(cs, self.input, z)
+        let msg_block_bits: Vec<Boolean> = self
+            .msg_block
+            .iter()
+            .enumerate()
+            .map(|(i, b)| {
+                Boolean::from(
+                    AllocatedBit::alloc(cs.namespace(|| format!("input bit {i}")), Some(*b))
+                        .unwrap(),
+                )
+            })
+            .collect();
+
+        Self::compress(cs, &msg_block_bits, z)
     }
 }
 
@@ -189,7 +188,6 @@ mod tests {
         assert_eq!(expected_zout[0], z_out_values[0]);
         assert_eq!(expected_zout[1], z_out_values[1]);
 
-        println!("Num constraints = {:?}", cs.num_constraints());
-        println!("Num inputs = {:?}", cs.num_inputs());
+        assert_eq!(cs.num_constraints(), 27218);
     }
 }

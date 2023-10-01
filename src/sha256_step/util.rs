@@ -6,7 +6,9 @@ pub const IV: [u32; 8] = [
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
 ];
 pub const BLOCK_LENGTH_BYTES: usize = 64;
+pub const BLOCK_LENGTH: usize = 512;
 pub const DIGEST_LENGTH_BYTES: usize = 32;
+pub const DIGEST_LENGTH: usize = 256;
 
 pub fn sha256_state_to_bytes(state: [u32; 8]) -> Vec<u8> {
     state.into_iter().flat_map(|x| x.to_be_bytes()).collect()
@@ -51,12 +53,16 @@ fn add_sha256_padding(input: Vec<u8>) -> Vec<u8> {
     padded_input
 }
 
-pub fn sha256_msg_block_sequence(input: Vec<u8>) -> Vec<[u8; BLOCK_LENGTH_BYTES]> {
+pub fn sha256_msg_block_sequence(input: Vec<u8>) -> Vec<[bool; BLOCK_LENGTH]> {
     let padded_input = add_sha256_padding(input);
     let blocks_vec: Vec<GenericArray<u8, U64>> = padded_input_to_blocks(padded_input);
-    blocks_vec
+    let blocks_vec_bytes: Vec<[u8; BLOCK_LENGTH_BYTES]> = blocks_vec
         .into_iter()
         .map(|b| b.try_into().unwrap())
+        .collect();
+    blocks_vec_bytes
+        .iter()
+        .map(|b| bytes_to_bits(b).try_into().unwrap())
         .collect()
 }
 
@@ -92,7 +98,7 @@ where
     );
 
     let remaining_bits = scalars[1].to_le_bits();
-    let num_bits_remaining = DIGEST_LENGTH_BYTES * 8 - (F::CAPACITY as usize);
+    let num_bits_remaining = DIGEST_LENGTH - (F::CAPACITY as usize);
     digest_bits.append(
         &mut remaining_bits
             .into_iter()
@@ -101,7 +107,7 @@ where
     );
 
     assert_eq!(digest_bits.len() % 8, 0);
-    assert_eq!(digest_bits.len() / 8, DIGEST_LENGTH_BYTES);
+    assert_eq!(digest_bits.len(), DIGEST_LENGTH);
 
     let mut digest: Vec<u8> = vec![];
     for i in 0..DIGEST_LENGTH_BYTES {
