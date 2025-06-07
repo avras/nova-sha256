@@ -7,9 +7,9 @@ use nova_sha256::sha256_step::{
     util::{scalars_to_digest, sha256_initial_digest_scalars, DIGEST_LENGTH_BYTES},
 };
 use nova_snark::{
+    nova::{CompressedSNARK, PublicParams, RecursiveSNARK},
     provider::{PallasEngine, VestaEngine},
-    traits::{circuit::TrivialCircuit, snark::RelaxedR1CSSNARKTrait, Engine},
-    CompressedSNARK, PublicParams, RecursiveSNARK,
+    traits::{snark::RelaxedR1CSSNARKTrait, Engine},
 };
 use sha2::{Digest, Sha256};
 
@@ -39,20 +39,13 @@ fn main() {
     println!("Nova-based SHA256 compression function iterations");
     println!("=========================================================");
 
-    type C1 = SHA256CompressionCircuit<<E1 as Engine>::Scalar>;
-    type C2 = TrivialCircuit<<E2 as Engine>::Scalar>;
-    let circuit_primary: C1 = SHA256CompressionCircuit::default();
-    let circuit_secondary: C2 = TrivialCircuit::default();
+    type C = SHA256CompressionCircuit<<E1 as Engine>::Scalar>;
+    let circuit: C = SHA256CompressionCircuit::default();
 
     let param_gen_timer = Instant::now();
     println!("Producing public parameters...");
-    let pp = PublicParams::<E1, E2, C1, C2>::setup(
-        &circuit_primary,
-        &circuit_secondary,
-        &*S1::ck_floor(),
-        &*S2::ck_floor(),
-    )
-    .unwrap();
+    let pp =
+        PublicParams::<E1, E2, C>::setup(&circuit, &*S1::ck_floor(), &*S2::ck_floor()).unwrap();
 
     let param_gen_time = param_gen_timer.elapsed();
     println!("PublicParams::setup, took {:?} ", param_gen_time);
@@ -75,28 +68,20 @@ fn main() {
     );
 
     let input: Vec<u8> = vec![0u8; input_len]; // All the input bytes are zero
-    let primary_circuit_sequence = C1::new_state_sequence(input.clone());
+    let primary_circuit_sequence = C::new_state_sequence(input.clone());
 
-    let z0_primary = sha256_initial_digest_scalars::<<E1 as Engine>::Scalar>();
-    let z0_secondary = vec![<E2 as Engine>::Scalar::zero()];
+    let z0 = sha256_initial_digest_scalars::<<E1 as Engine>::Scalar>();
 
     let proof_gen_timer = Instant::now();
     // produce a recursive SNARK
     println!("Generating a RecursiveSNARK...");
-    let mut recursive_snark: RecursiveSNARK<E1, E2, C1, C2> =
-        RecursiveSNARK::<E1, E2, C1, C2>::new(
-            &pp,
-            &primary_circuit_sequence[0],
-            &circuit_secondary,
-            &z0_primary,
-            &z0_secondary,
-        )
-        .unwrap();
+    let mut recursive_snark: RecursiveSNARK<E1, E2, C> =
+        RecursiveSNARK::<E1, E2, C>::new(&pp, &primary_circuit_sequence[0], &z0).unwrap();
 
     let start = Instant::now();
     for (i, circuit_primary) in primary_circuit_sequence.iter().enumerate() {
         let step_start = Instant::now();
-        let res = recursive_snark.prove_step(&pp, circuit_primary, &circuit_secondary);
+        let res = recursive_snark.prove_step(&pp, circuit_primary);
         assert!(res.is_ok());
         println!(
             "RecursiveSNARK::prove_step {}: {:?}, took {:?} ",
@@ -114,7 +99,7 @@ fn main() {
     println!("Verifying a RecursiveSNARK...");
     let start = Instant::now();
     let num_steps = primary_circuit_sequence.len();
-    let res = recursive_snark.verify(&pp, num_steps, &z0_primary, &z0_secondary);
+    let res = recursive_snark.verify(&pp, num_steps, &z0);
     println!(
         "RecursiveSNARK::verify: {:?}, took {:?}",
         res.is_ok(),
@@ -124,11 +109,11 @@ fn main() {
 
     // produce a compressed SNARK
     println!("Generating a CompressedSNARK using Spartan with IPA-PC...");
-    let (pk, vk) = CompressedSNARK::<_, _, _, _, S1, S2>::setup(&pp).unwrap();
+    let (pk, vk) = CompressedSNARK::<_, _, _, S1, S2>::setup(&pp).unwrap();
 
     let start = Instant::now();
 
-    let res = CompressedSNARK::<_, _, _, _, S1, S2>::prove(&pp, &pk, &recursive_snark);
+    let res = CompressedSNARK::<_, _, _, S1, S2>::prove(&pp, &pk, &recursive_snark);
     println!(
         "CompressedSNARK::prove: {:?}, took {:?}",
         res.is_ok(),
@@ -151,7 +136,7 @@ fn main() {
     // verify the compressed SNARK
     println!("Verifying a CompressedSNARK...");
     let start = Instant::now();
-    let res = compressed_snark.verify(&vk, num_steps, &z0_primary, &z0_secondary);
+    let res = compressed_snark.verify(&vk, num_steps, &z0);
     let verification_time = start.elapsed();
     println!(
         "CompressedSNARK::verify: {:?}, took {:?}",
@@ -169,7 +154,7 @@ fn main() {
 
     println!("=========================================================");
 
-    let actual_hash_bytes = scalars_to_digest(res.unwrap().0.as_slice().try_into().unwrap());
+    let actual_hash_bytes = scalars_to_digest(res.unwrap().as_slice().try_into().unwrap());
     let mut hasher = Sha256::new();
     hasher.update(input);
     let expected_hash_bytes: [u8; DIGEST_LENGTH_BYTES] = hasher.finalize().try_into().unwrap();

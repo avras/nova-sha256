@@ -1,4 +1,3 @@
-use bellpepper::gadgets::multipack::{bytes_to_bits, compute_multipacking};
 use ff::{PrimeField, PrimeFieldBits};
 use generic_array::{typenum::U64, GenericArray};
 
@@ -9,6 +8,36 @@ pub const BLOCK_LENGTH_BYTES: usize = 64;
 pub const BLOCK_LENGTH: usize = 512;
 pub const DIGEST_LENGTH_BYTES: usize = 32;
 pub const DIGEST_LENGTH: usize = 256;
+
+// From bellpepper/src/gadgets/multipack.rs
+fn bytes_to_bits(bytes: &[u8]) -> Vec<bool> {
+    bytes
+        .iter()
+        .flat_map(|&v| (0..8).rev().map(move |i| (v >> i) & 1 == 1))
+        .collect()
+}
+
+// From bellpepper/src/gadgets/multipack.rs
+fn compute_multipacking<Scalar: PrimeField>(bits: &[bool]) -> Vec<Scalar> {
+    let mut result = vec![];
+
+    for bits in bits.chunks(Scalar::CAPACITY as usize) {
+        let mut cur = Scalar::ZERO;
+        let mut coeff = Scalar::ONE;
+
+        for bit in bits {
+            if *bit {
+                cur.add_assign(&coeff);
+            }
+
+            coeff = coeff.double();
+        }
+
+        result.push(cur);
+    }
+
+    result
+}
 
 pub fn sha256_state_to_bytes(state: [u32; 8]) -> Vec<u8> {
     state.into_iter().flat_map(|x| x.to_be_bytes()).collect()

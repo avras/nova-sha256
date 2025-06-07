@@ -1,16 +1,48 @@
 use std::marker::PhantomData;
 
 use crate::sha256_step::util::{sha256_msg_block_sequence, BLOCK_LENGTH, DIGEST_LENGTH};
-use bellpepper::gadgets::{
-    multipack::pack_bits, sha256::sha256_compression_function, uint32::UInt32,
-};
-use bellpepper_core::{
+use ff::{PrimeField, PrimeFieldBits};
+use nova_snark::frontend::gadgets::{
     boolean::{AllocatedBit, Boolean},
     num::AllocatedNum,
-    ConstraintSystem, SynthesisError,
 };
-use ff::{PrimeField, PrimeFieldBits};
+use nova_snark::frontend::gadgets::{sha256::sha256_compression_function, uint32::UInt32};
+use nova_snark::frontend::num::Num;
+use nova_snark::frontend::{ConstraintSystem, SynthesisError};
 use nova_snark::traits::circuit::StepCircuit;
+
+// From bellpepper/src/gadgets/multipack.rs
+/// Takes a sequence of booleans and exposes them as a single compact Num.
+pub fn pack_bits<Scalar, CS>(
+    mut cs: CS,
+    bits: &[Boolean],
+) -> Result<AllocatedNum<Scalar>, SynthesisError>
+where
+    Scalar: PrimeField,
+    CS: ConstraintSystem<Scalar>,
+{
+    let mut num = Num::<Scalar>::zero();
+    let mut coeff = Scalar::ONE;
+    for bit in bits.iter().take(Scalar::CAPACITY as usize) {
+        num = num.add_bool_with_coeff(CS::one(), bit, coeff);
+
+        coeff = coeff.double();
+    }
+
+    let alloc_num = AllocatedNum::alloc(cs.namespace(|| "input"), || {
+        num.get_value().ok_or(SynthesisError::AssignmentMissing)
+    })?;
+
+    // num * 0 = input
+    cs.enforce(
+        || "packing constraint",
+        |_| num.lc(Scalar::ONE),
+        |lc| lc + CS::one(),
+        |lc| lc + alloc_num.get_variable(),
+    );
+
+    Ok(alloc_num)
+}
 
 #[derive(Clone, Debug)]
 pub struct SHA256CompressionCircuit<F>

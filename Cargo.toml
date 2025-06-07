@@ -6,11 +6,9 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-bellpepper-core = { version="0.4.0", default-features = false }
-bellpepper = { version="0.4.0", default-features = false }
 ff = "0.13.0"
 generic-array = "0.14.6"
-nova-snark = "0.35.0"
+nova-snark = { git = "https://github.com/avras/Nova.git", branch = "pub-uint32-multieq" }
 
 [dev-dependencies]
 pasta_curves = { version = "0.5", features = ["repr-c", "serde"] }
